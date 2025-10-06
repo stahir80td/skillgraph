@@ -1,1 +1,1 @@
-"# skillgraph" 
+# SkillGraph - Interactive Career Path Navigator 
