@@ -1,8 +1,7 @@
 // ========================================
-// SKILL PATH NAVIGATOR - NEO4J SCHEMA
+// SKILL PATH NAVIGATOR - NEO4J SCHEMA (FIXED)
 // ========================================
 // Run this script first to set up constraints and indexes
-// This ensures data integrity and optimizes query performance
 
 // ========================================
 // 1. CONSTRAINTS (Ensures uniqueness)
@@ -93,25 +92,64 @@ CREATE INDEX subdomain_name IF NOT EXISTS
 FOR (sd:SubDomain) ON (sd.name);
 
 // ========================================
-// 3. NODE PROPERTY EXISTENCE CONSTRAINTS
+// 3. PROPERTY EXISTENCE CONSTRAINTS - FIXED
 // ========================================
-// Ensures required properties are always present
+// Individual property constraints (Neo4j 5.x syntax)
 
 // Domain required properties
-CREATE CONSTRAINT domain_props IF NOT EXISTS
-FOR (d:Domain) REQUIRE (d.id, d.name, d.description, d.color) IS NOT NULL;
+CREATE CONSTRAINT domain_id_exists IF NOT EXISTS
+FOR (d:Domain) REQUIRE d.id IS NOT NULL;
+
+CREATE CONSTRAINT domain_name_exists IF NOT EXISTS
+FOR (d:Domain) REQUIRE d.name IS NOT NULL;
+
+CREATE CONSTRAINT domain_desc_exists IF NOT EXISTS
+FOR (d:Domain) REQUIRE d.description IS NOT NULL;
+
+CREATE CONSTRAINT domain_color_exists IF NOT EXISTS
+FOR (d:Domain) REQUIRE d.color IS NOT NULL;
 
 // Skill required properties
-CREATE CONSTRAINT skill_props IF NOT EXISTS
-FOR (s:Skill) REQUIRE (s.id, s.name, s.difficulty_level, s.estimated_hours) IS NOT NULL;
+CREATE CONSTRAINT skill_id_exists IF NOT EXISTS
+FOR (s:Skill) REQUIRE s.id IS NOT NULL;
+
+CREATE CONSTRAINT skill_name_exists IF NOT EXISTS
+FOR (s:Skill) REQUIRE s.name IS NOT NULL;
+
+CREATE CONSTRAINT skill_difficulty_exists IF NOT EXISTS
+FOR (s:Skill) REQUIRE s.difficulty_level IS NOT NULL;
+
+CREATE CONSTRAINT skill_hours_exists IF NOT EXISTS
+FOR (s:Skill) REQUIRE s.estimated_hours IS NOT NULL;
 
 // Resource required properties
-CREATE CONSTRAINT resource_props IF NOT EXISTS
-FOR (r:Resource) REQUIRE (r.id, r.title, r.url, r.type) IS NOT NULL;
+CREATE CONSTRAINT resource_id_exists IF NOT EXISTS
+FOR (r:Resource) REQUIRE r.id IS NOT NULL;
+
+CREATE CONSTRAINT resource_title_exists IF NOT EXISTS
+FOR (r:Resource) REQUIRE r.title IS NOT NULL;
+
+CREATE CONSTRAINT resource_url_exists IF NOT EXISTS
+FOR (r:Resource) REQUIRE r.url IS NOT NULL;
+
+CREATE CONSTRAINT resource_type_exists IF NOT EXISTS
+FOR (r:Resource) REQUIRE r.type IS NOT NULL;
 
 // Certification required properties
-CREATE CONSTRAINT cert_props IF NOT EXISTS
-FOR (c:Certification) REQUIRE (c.id, c.name, c.provider, c.level, c.cost) IS NOT NULL;
+CREATE CONSTRAINT cert_id_exists IF NOT EXISTS
+FOR (c:Certification) REQUIRE c.id IS NOT NULL;
+
+CREATE CONSTRAINT cert_name_exists IF NOT EXISTS
+FOR (c:Certification) REQUIRE c.name IS NOT NULL;
+
+CREATE CONSTRAINT cert_provider_exists IF NOT EXISTS
+FOR (c:Certification) REQUIRE c.provider IS NOT NULL;
+
+CREATE CONSTRAINT cert_level_exists IF NOT EXISTS
+FOR (c:Certification) REQUIRE c.level IS NOT NULL;
+
+CREATE CONSTRAINT cert_cost_exists IF NOT EXISTS
+FOR (c:Certification) REQUIRE c.cost IS NOT NULL;
 
 // ========================================
 // 4. COMPOSITE INDEXES (For complex queries)
