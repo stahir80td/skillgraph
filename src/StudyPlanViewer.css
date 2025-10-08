@@ -1,0 +1,680 @@
+/* Study Plan Viewer Styles */
+.study-plan-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.study-plan-container {
+  background: linear-gradient(135deg, #1a1a3e 0%, #0f0f23 100%);
+  border-radius: 1.5rem;
+  width: 100%;
+  max-width: 1200px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 2px solid rgba(139, 92, 246, 0.3);
+  box-shadow: 0 25px 75px rgba(139, 92, 246, 0.25);
+  position: relative;
+}
+
+/* Custom Scrollbar */
+.study-plan-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.study-plan-container::-webkit-scrollbar-track {
+  background: rgba(30, 30, 50, 0.3);
+  border-radius: 4px;
+}
+
+.study-plan-container::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.5);
+  border-radius: 4px;
+}
+
+.study-plan-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.7);
+}
+
+/* Header Section */
+.study-plan-header {
+  position: sticky;
+  top: 0;
+  background: linear-gradient(180deg, rgba(15, 15, 35, 0.98) 0%, rgba(15, 15, 35, 0.95) 100%);
+  backdrop-filter: blur(10px);
+  padding: 2rem;
+  border-bottom: 2px solid rgba(139, 92, 246, 0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  z-index: 100;
+  gap: 2rem;
+}
+
+.header-content h1 {
+  font-size: 2rem;
+  background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 1rem;
+}
+
+.header-stats {
+  display: flex;
+  gap: 2rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 0.75rem;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #8b5cf6;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #a1a1aa;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.btn-download {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: none;
+  border-radius: 0.5rem;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 0.95rem;
+}
+
+.btn-download:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+}
+
+.btn-close-plan {
+  width: 40px;
+  height: 40px;
+  border-radius: 0.5rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 2px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  transition: all 0.3s;
+}
+
+.btn-close-plan:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: scale(1.1);
+}
+
+/* Skills Overview Section */
+.skills-overview {
+  padding: 2rem;
+  background: rgba(30, 30, 50, 0.2);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.skills-overview h2 {
+  color: #e4e4e7;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.skill-card {
+  background: rgba(15, 15, 35, 0.5);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  transition: all 0.3s;
+}
+
+.skill-card:hover {
+  transform: translateY(-2px);
+  background: rgba(15, 15, 35, 0.7);
+}
+
+.skill-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.skill-number {
+  width: 28px;
+  height: 28px;
+  background: rgba(139, 92, 246, 0.2);
+  border: 2px solid rgba(139, 92, 246, 0.4);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #8b5cf6;
+}
+
+.skill-card h3 {
+  flex: 1;
+  font-size: 1.1rem;
+  color: #e4e4e7;
+}
+
+.skill-meta {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 2.25rem;
+}
+
+.difficulty-tag,
+.hours-tag {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.difficulty-tag.beginner {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+.difficulty-tag.intermediate {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+.difficulty-tag.expert,
+.difficulty-tag.advanced {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.hours-tag {
+  background: rgba(99, 102, 241, 0.2);
+  color: #6366f1;
+}
+
+/* Study Plan Content */
+.study-plan-content {
+  padding: 2rem;
+}
+
+.plan-section {
+  background: rgba(30, 30, 50, 0.3);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.plan-section:hover {
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem;
+  cursor: pointer;
+  background: rgba(15, 15, 35, 0.3);
+  transition: all 0.3s;
+}
+
+.section-header:hover {
+  background: rgba(15, 15, 35, 0.5);
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.section-icon {
+  font-size: 1.5rem;
+}
+
+.section-title h2 {
+  font-size: 1.25rem;
+  color: #e4e4e7;
+  margin: 0;
+}
+
+.toggle-btn {
+  background: transparent;
+  border: none;
+  color: #8b5cf6;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  transition: all 0.3s;
+}
+
+.toggle-btn:hover {
+  transform: scale(1.2);
+}
+
+.section-content {
+  padding: 1.5rem;
+  border-top: 1px solid rgba(139, 92, 246, 0.1);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 2000px;
+  }
+}
+
+.markdown-content {
+  color: #d1d5db;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.markdown-content h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #8b5cf6;
+  margin: 1.5rem 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid rgba(139, 92, 246, 0.2);
+}
+
+.markdown-content h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #a78bfa;
+  margin: 1.25rem 0 0.75rem;
+}
+
+.markdown-content h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #c4b5fd;
+  margin: 1rem 0 0.5rem;
+}
+
+.markdown-content p {
+  margin: 0.75rem 0;
+  color: #d1d5db;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+  color: #d1d5db;
+}
+
+.markdown-content li {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.markdown-content strong {
+  font-weight: 600;
+  color: #e4e4e7;
+}
+
+.markdown-content em {
+  font-style: italic;
+  color: #c4b5fd;
+}
+
+.markdown-content a {
+  color: #8b5cf6;
+  text-decoration: underline;
+  transition: all 0.2s;
+}
+
+.markdown-content a:hover {
+  color: #a78bfa;
+  text-decoration: none;
+}
+
+.markdown-content table {
+  width: 100%;
+  margin: 1rem 0;
+  border-collapse: collapse;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.markdown-content th,
+.markdown-content td {
+  padding: 0.75rem;
+  text-align: left;
+  border: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.markdown-content th {
+  background: rgba(139, 92, 246, 0.1);
+  font-weight: 600;
+  color: #a78bfa;
+}
+
+.markdown-content td {
+  color: #d1d5db;
+}
+
+.markdown-content code {
+  background: rgba(139, 92, 246, 0.1);
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+  color: #a78bfa;
+}
+
+.markdown-content pre {
+  background: rgba(30, 30, 50, 0.5);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+.markdown-content pre code {
+  background: none;
+  padding: 0;
+  color: #d1d5db;
+}
+
+/* Footer */
+.study-plan-footer {
+  padding: 2rem;
+  text-align: center;
+  border-top: 1px solid rgba(139, 92, 246, 0.1);
+  background: rgba(15, 15, 35, 0.3);
+}
+
+.study-plan-footer p {
+  color: #8b5cf6;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.footer-note {
+  color: #71717a;
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .study-plan-overlay {
+    position: static;
+    background: white;
+    padding: 0;
+  }
+
+  .study-plan-container {
+    max-height: none;
+    background: white;
+    border: none;
+    box-shadow: none;
+    color: black;
+  }
+
+  .study-plan-header {
+    position: static;
+    background: white;
+    border-bottom: 2px solid #e5e5e5;
+  }
+
+  .print-header {
+    padding: 2rem;
+    text-align: center;
+    border-bottom: 2px solid #e5e5e5;
+  }
+
+  .print-header h1 {
+    color: black;
+    margin-bottom: 1rem;
+  }
+
+  .print-stats {
+    color: #666;
+  }
+
+  .skills-overview {
+    background: #f9f9f9;
+  }
+
+  .skills-overview h2,
+  .section-title h2 {
+    color: black;
+  }
+
+  .skill-card {
+    background: white;
+    border: 1px solid #e5e5e5;
+  }
+
+  .plan-section {
+    background: white;
+    border: 1px solid #e5e5e5;
+    page-break-inside: avoid;
+  }
+
+  .section-content {
+    display: block !important;
+  }
+
+  .markdown-content {
+    color: black;
+  }
+}
+
+.print-only {
+  display: none;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .study-plan-overlay {
+    padding: 0;
+  }
+
+  .study-plan-container {
+    border-radius: 0;
+    max-height: 100vh;
+    border: none;
+  }
+
+  .study-plan-header {
+    flex-direction: column;
+    padding: 1.5rem 1rem;
+    gap: 1rem;
+  }
+
+  .header-content h1 {
+    font-size: 1.5rem;
+  }
+
+  .header-stats {
+    gap: 1rem;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .stat-item {
+    padding: 0.5rem 1rem;
+    flex: 1;
+  }
+
+  .stat-value {
+    font-size: 1.25rem;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .btn-download {
+    flex: 1;
+  }
+
+  .skills-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .skills-overview,
+  .study-plan-content {
+    padding: 1rem;
+  }
+
+  .section-header {
+    padding: 1rem;
+  }
+
+  .section-title h2 {
+    font-size: 1.1rem;
+  }
+
+  .section-content {
+    padding: 1rem;
+  }
+
+  .markdown-content {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-content h1 {
+    font-size: 1.25rem;
+  }
+
+  .stat-item {
+    padding: 0.5rem;
+  }
+
+  .stat-value {
+    font-size: 1rem;
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+  }
+
+  .study-plan-viewer {
+  padding: 2rem;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  max-width: 900px;
+  margin: 0 auto;
+  font-family: "Inter", system-ui, sans-serif;
+  color: #222;
+  line-height: 1.6;
+}
+
+.study-plan-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+}
+
+.study-plan-section {
+  margin-bottom: 2rem;
+}
+
+.study-plan-section h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 0.8rem;
+  color: #34495e;
+}
+
+.markdown-content h3 {
+  font-size: 1.1rem;
+  margin-top: 1rem;
+  color: #2c3e50;
+}
+
+.markdown-content p {
+  margin: 0.4rem 0 1rem;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin: 0.5rem 0 1rem 1.5rem;
+  padding-left: 1rem;
+}
+
+.markdown-content li {
+  margin-bottom: 0.4rem;
+}
+
+.markdown-content a {
+  color: #0078d4;
+  text-decoration: none;
+}
+
+.markdown-content a:hover {
+  text-decoration: underline;
+}
+
+}

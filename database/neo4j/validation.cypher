@@ -65,6 +65,7 @@ WITH d, COLLECT(sd.name) AS subdomains
 RETURN d.name AS Domain, d.id AS DomainId, SIZE(subdomains) AS SubDomainCount, subdomains
 ORDER BY d.priority;
 
+-- todo
 // 3.2 Find domains with no subdomains (should be empty)
 MATCH (d:Domain)
 WHERE NOT (d)-[:CONTAINS]->(:SubDomain)

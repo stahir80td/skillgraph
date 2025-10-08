@@ -1,3 +1,0 @@
-# Database Setup Instructions 
- 
-
