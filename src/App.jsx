@@ -47,14 +47,14 @@ const LandingPage = ({ onGetStarted }) => (
       <div className="nav-links">
         <a className="nav-link" onClick={onGetStarted}>Launch App</a>
         <a className="nav-link" href="#features">Features</a>
-        <a className="nav-link" href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a className="nav-link" href="https://github.com/stahir80td/skillgraph" target="_blank" rel="noopener noreferrer">GitHub</a>
       </div>
     </nav>
     
     <section className="hero-section">
       <h1 className="hero-title">Navigate Your Tech Career</h1>
       <p className="hero-subtitle">
-        Explore skills, build learning paths, and track your progress with our intelligent skill navigation system
+        Explore skills, build learning paths, and track your progress with intelligent skill navigation system (Neo4j + Gemini + React + Node.js)
       </p>
       <button className="cta-button" onClick={onGetStarted}>
         Get Started →

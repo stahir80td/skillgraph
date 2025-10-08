@@ -1,0 +1,52 @@
+services:
+  # Web service that runs both backend and frontend
+  - type: web
+    name: skillgraph
+    runtime: docker
+    repo: https://github.com/stahir80td/skillgraph
+    branch: main
+    region: oregon
+    plan: free
+    
+    # Build configuration
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    
+    # Health check
+    healthCheckPath: /api/health
+    
+    # Environment variables
+    envVars:
+      - key: NODE_ENV
+        value: production
+      
+      - key: PORT
+        value: 3001
+      
+      # Neo4j connection (use your actual Neo4j cloud instance)
+      - key: NEO4J_URI
+        sync: false
+      
+      - key: NEO4J_USER
+        sync: false
+      
+      - key: NEO4J_PASSWORD
+        sync: false
+      
+      # Gemini API (optional)
+      - key: GEMINI_API_KEY
+        sync: false
+      
+      - key: GEMINI_MODEL
+        value: gemini-pro-latest
+    
+    # Scaling
+    scaling:
+      minInstances: 1
+      maxInstances: 1
+    
+    # Build and deploy settings
+    buildCommand: docker build -t skillgraph .
+    
+    # Auto-deploy on push to main
+    autoDeploy: true
