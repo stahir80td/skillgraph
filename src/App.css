@@ -1062,4 +1062,144 @@ body {
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
   }
+  /* ===== MOBILE BOTTOM SHEET STYLES ===== */
+/* Add these at the end of App.css */
+
+/* Mobile Backdrop */
+.mobile-backdrop {
+  display: none;
+}
+
+/* Drag Handle - Hidden on Desktop */
+.drag-handle {
+  display: none;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  /* Mobile Backdrop */
+  .mobile-backdrop {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 19;
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Convert detail sidebar to bottom sheet on mobile */
+  .detail-sidebar {
+    position: fixed !important;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    height: auto;
+    max-height: 70vh;
+    border-left: none;
+    border-radius: 1rem 1rem 0 0;
+    transform: translateY(0);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+    z-index: 20;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Minimized state for bottom sheet */
+  .detail-sidebar.minimized {
+    transform: translateY(calc(100% - 100px));
+    max-height: 100px;
+  }
+
+  /* Drag Handle */
+  .drag-handle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.75rem;
+    cursor: pointer;
+    background: transparent;
+    border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+  }
+
+  .handle-bar {
+    width: 40px;
+    height: 4px;
+    background: #71717a;
+    border-radius: 2px;
+    transition: background 0.3s;
+  }
+
+  .drag-handle:active .handle-bar {
+    background: #8b5cf6;
+  }
+
+  /* Adjust detail content for scrolling */
+  .detail-content {
+    overflow-y: auto;
+    flex: 1;
+    padding-bottom: 2rem;
+  }
+
+  /* Fix graph container to fill available space */
+  .explore-view {
+    flex-direction: column !important;
+  }
+
+  .graph-container {
+    height: calc(100vh - 80px) !important;
+    width: 100% !important;
+  }
+
+  /* Hide close button on mobile - use backdrop or swipe instead */
+  .detail-header .close-btn {
+    display: none;
+  }
+
+  /* Adjust detail header for mobile */
+  .detail-header {
+    position: sticky;
+    top: 0;
+    background: rgba(15, 15, 35, 0.98);
+    z-index: 1;
+    padding-top: 0;
+  }
+
+  /* Ensure breadcrumb stays visible */
+  .breadcrumb {
+    z-index: 15 !important;
+  }
+}
+
+/* Smooth transitions for opening/closing */
+.detail-sidebar-enter {
+  transform: translateY(100%);
+}
+
+.detail-sidebar-enter-active {
+  transform: translateY(0);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.detail-sidebar-exit {
+  transform: translateY(0);
+}
+
+.detail-sidebar-exit-active {
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 }

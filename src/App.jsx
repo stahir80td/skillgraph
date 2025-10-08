@@ -120,7 +120,10 @@ const MainApp = ({
   navigationPath,
   handleBreadcrumbClick,
   onBackToLanding,
-  cyRef
+  cyRef,
+  isMobile,
+  isDetailMinimized,
+  setIsDetailMinimized
 }) => (
   <div className="app-container">
     {/* Header */}
@@ -257,62 +260,84 @@ const MainApp = ({
             />
           </div>
           
-          {/* Right Panel - Selected Item Details */}
+          {/* Right Panel - Selected Item Details with Mobile Support */}
           {selectedItem && (
-            <div className="detail-sidebar">
-              <div className="detail-header">
-                <h2>{selectedItem.name || selectedItem.label}</h2>
-                <button 
-                  className="close-btn"
+            <>
+              {/* Mobile Backdrop */}
+              {isMobile && (
+                <div 
+                  className="mobile-backdrop"
                   onClick={() => setSelectedItem(null)}
-                >×</button>
-              </div>
-              <div className="detail-content">
-                {selectedItem.category && (
-                  <p className="detail-type">{selectedItem.category}</p>
-                )}
-                {selectedItem.description && (
-                  <p className="detail-description">{selectedItem.description}</p>
-                )}
-                {selectedItem.estimated_hours && (
-                  <p className="detail-info">
-                    <strong>Duration:</strong> {selectedItem.estimated_hours} hours
-                  </p>
-                )}
-                {selectedItem.difficulty_level && (
-                  <p className="detail-info">
-                    <strong>Difficulty:</strong> {selectedItem.difficulty_level}
-                  </p>
-                )}
-                {selectedItem.demand_score && (
-                  <p className="detail-info">
-                    <strong>Demand Score:</strong> {selectedItem.demand_score}/10
-                  </p>
+                />
+              )}
+              
+              <div className={`detail-sidebar ${isDetailMinimized ? 'minimized' : ''}`}>
+                {/* Mobile Drag Handle */}
+                {isMobile && (
+                  <div 
+                    className="drag-handle"
+                    onClick={() => setIsDetailMinimized(!isDetailMinimized)}
+                  >
+                    <span className="handle-bar"></span>
+                  </div>
                 )}
                 
-                <div className="detail-actions">
-                  <button 
-                    className="btn-primary"
-                    onClick={() => addToPath(selectedItem)}
-                    disabled={learningPath.find(i => i.id === selectedItem.id)}
-                  >
-                    {learningPath.find(i => i.id === selectedItem.id)
-                      ? 'Added to Path' 
-                      : 'Add to Path'}
-                  </button>
-                  {selectedItem.category === 'skill' && (
+                <div className="detail-header">
+                  <h2>{selectedItem.name || selectedItem.label}</h2>
+                  {!isMobile && (
                     <button 
-                      className={`btn-secondary ${completedSkills.includes(selectedItem.id) ? 'completed' : ''}`}
-                      onClick={() => markComplete(selectedItem.id)}
-                    >
-                      {completedSkills.includes(selectedItem.id) 
-                        ? '✓ Completed' 
-                        : 'Mark Complete'}
-                    </button>
+                      className="close-btn"
+                      onClick={() => setSelectedItem(null)}
+                    >×</button>
                   )}
                 </div>
+                <div className="detail-content">
+                  {selectedItem.category && (
+                    <p className="detail-type">{selectedItem.category}</p>
+                  )}
+                  {selectedItem.description && (
+                    <p className="detail-description">{selectedItem.description}</p>
+                  )}
+                  {selectedItem.estimated_hours && (
+                    <p className="detail-info">
+                      <strong>Duration:</strong> {selectedItem.estimated_hours} hours
+                    </p>
+                  )}
+                  {selectedItem.difficulty_level && (
+                    <p className="detail-info">
+                      <strong>Difficulty:</strong> {selectedItem.difficulty_level}
+                    </p>
+                  )}
+                  {selectedItem.demand_score && (
+                    <p className="detail-info">
+                      <strong>Demand Score:</strong> {selectedItem.demand_score}/10
+                    </p>
+                  )}
+                  
+                  <div className="detail-actions">
+                    <button 
+                      className="btn-primary"
+                      onClick={() => addToPath(selectedItem)}
+                      disabled={learningPath.find(i => i.id === selectedItem.id)}
+                    >
+                      {learningPath.find(i => i.id === selectedItem.id)
+                        ? 'Added to Path' 
+                        : 'Add to Path'}
+                    </button>
+                    {selectedItem.category === 'skill' && (
+                      <button 
+                        className={`btn-secondary ${completedSkills.includes(selectedItem.id) ? 'completed' : ''}`}
+                        onClick={() => markComplete(selectedItem.id)}
+                      >
+                        {completedSkills.includes(selectedItem.id) 
+                          ? '✓ Completed' 
+                          : 'Mark Complete'}
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
+            </>
           )}
         </div>
       )}
@@ -533,7 +558,27 @@ function App() {
   // Navigation state - FIXED
   const [navigationPath, setNavigationPath] = useState([]); // [{id, name, type}]
   
+  // Mobile state additions
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isDetailMinimized, setIsDetailMinimized] = useState(false);
+  
   const cyRef = useRef(null);
+
+  // Add resize listener for mobile detection
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Reset minimized state when selectedItem changes
+  useEffect(() => {
+    if (selectedItem && isMobile) {
+      setIsDetailMinimized(false);
+    }
+  }, [selectedItem, isMobile]);
 
   // Load domains on app start
   useEffect(() => {
@@ -746,28 +791,210 @@ function App() {
   };
 
   const generateStudyPlan = async () => {
-    if (learningPath.length === 0) {
-      alert('Please add skills to your learning path first');
-      return;
-    }
+  if (learningPath.length === 0) {
+    alert('Please add skills to your learning path first');
+    return;
+  }
+  
+  setLoading(true);
+  
+  // Clear any previous modal data to prevent showing stale content
+  setStudyPlanModal(null);
+  
+  try {
+    const response = await axios.post(`${API_URL}/study-plan`, {
+      skills: learningPath,
+      hoursPerWeek,
+      learningStyle: 'mixed'
+    });
     
-    setLoading(true);
-    try {
-      const response = await axios.post(`${API_URL}/study-plan`, {
-        skills: learningPath,
-        hoursPerWeek,
-        learningStyle: 'mixed'
-      });
+    // Check if response has data
+    if (response.data && response.data.plan) {
+      // Add rate limit notice if present
+      let noticeComponent = null;
+      if (response.data.rateLimitMessage) {
+        noticeComponent = (
+          <div style={{
+            padding: '1rem',
+            background: 'linear-gradient(135deg, #f59e0b20, #f5980b10)',
+            border: '1px solid #f59e0b',
+            borderRadius: '0.5rem',
+            marginBottom: '1rem'
+          }}>
+            <p style={{ color: '#f59e0b', fontWeight: 600, marginBottom: '0.5rem' }}>
+              ⚡ AI Rate Limit Notice
+            </p>
+            <p style={{ color: '#fbbf24', fontSize: '0.9rem' }}>
+              {response.data.rateLimitMessage}
+            </p>
+            <p style={{ color: '#fbbf24', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+              Don't worry! We've generated a high-quality study plan using our template system. 
+              The AI features will be available again shortly.
+            </p>
+          </div>
+        );
+      } else if (response.data.fromCache) {
+        noticeComponent = (
+          <div style={{
+            padding: '0.75rem',
+            background: 'linear-gradient(135deg, #10b98120, #10b98110)',
+            border: '1px solid #10b981',
+            borderRadius: '0.5rem',
+            marginBottom: '1rem'
+          }}>
+            <p style={{ color: '#10b981', fontSize: '0.9rem' }}>
+              📦 This plan was retrieved from cache for instant loading!
+            </p>
+          </div>
+        );
+      } else if (response.data.isAiGenerated) {
+        noticeComponent = (
+          <div style={{
+            padding: '0.75rem',
+            background: 'linear-gradient(135deg, #8b5cf620, #8b5cf610)',
+            border: '1px solid #8b5cf6',
+            borderRadius: '0.5rem',
+            marginBottom: '1rem'
+          }}>
+            <p style={{ color: '#a78bfa', fontSize: '0.9rem' }}>
+              ✨ AI-Generated personalized study plan created just for you!
+            </p>
+          </div>
+        );
+      }
+      
+      // Set the modal with notice
       setStudyPlanModal({
         ...response.data,
-        skills: learningPath // Pass the skills array to the viewer
+        skills: learningPath,
+        noticeComponent // Pass the notice to be rendered in the modal
       });
-    } catch (error) {
-      console.error('Failed to generate study plan:', error);
-    } finally {
-      setLoading(false);
+    } else {
+      console.error('Invalid response format:', response.data);
+      alert('Generated plan but received invalid format. Please try again.');
     }
+    
+  } catch (error) {
+    console.error('Failed to generate study plan:', error);
+    
+    let errorMessage = 'Failed to generate study plan. ';
+    let fallbackGenerated = false;
+    
+    if (error.response) {
+      if (error.response.status === 429 || error.response.data?.details?.includes('RATE_LIMIT')) {
+        errorMessage = '⚡ AI service is temporarily at capacity. Generating an optimized template plan instead...';
+        fallbackGenerated = true;
+      } else if (error.response.data?.fallbackAvailable) {
+        errorMessage = 'Server error occurred. Generating a local study plan...';
+        fallbackGenerated = true;
+      } else {
+        errorMessage += error.response.data?.error || 'Please try again.';
+      }
+    } else if (error.request) {
+      errorMessage = 'Network error. Generating offline study plan...';
+      fallbackGenerated = true;
+    }
+    
+    // Show user-friendly notification instead of alert
+    if (fallbackGenerated) {
+      // Generate fallback plan
+      const fallbackPlan = generateFallbackPlan(learningPath, hoursPerWeek);
+      
+      // Add a notice about the fallback
+      fallbackPlan.noticeComponent = (
+        <div style={{
+          padding: '1rem',
+          background: 'linear-gradient(135deg, #f59e0b20, #f5980b10)',
+          border: '1px solid #f59e0b',
+          borderRadius: '0.5rem',
+          marginBottom: '1rem'
+        }}>
+          <p style={{ color: '#f59e0b', fontWeight: 600, marginBottom: '0.5rem' }}>
+            📋 Template-Based Study Plan
+          </p>
+          <p style={{ color: '#fbbf24', fontSize: '0.9rem' }}>
+            {errorMessage}
+          </p>
+          <p style={{ color: '#fbbf24', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+            This plan is optimized based on industry best practices. Try again later for AI personalization.
+          </p>
+        </div>
+      );
+      
+      setStudyPlanModal(fallbackPlan);
+    } else {
+      alert(errorMessage);
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
+// Add this helper function for local fallback generation
+const generateFallbackPlan = (skills, hoursPerWeek) => {
+  const totalHours = skills.reduce((sum, skill) => 
+    sum + (skill.estimated_hours || skill.hours || 20), 0
+  );
+  const weeks = Math.ceil(totalHours / hoursPerWeek);
+  
+  const plan = `# 📚 Optimized Learning Plan
+
+## Overview
+**Skills to Learn:** ${skills.map(s => s.name).join(', ')}
+**Duration:** ${weeks} weeks at ${hoursPerWeek} hours/week
+**Total Hours:** ${totalHours}
+
+## Weekly Breakdown
+
+${skills.map((skill, index) => {
+  const skillWeeks = Math.ceil((skill.estimated_hours || 20) / hoursPerWeek);
+  const startWeek = index === 0 ? 1 : 
+    skills.slice(0, index).reduce((sum, s) => 
+      sum + Math.ceil((s.estimated_hours || 20) / hoursPerWeek), 1);
+  
+  return `### 📌 ${skill.name}
+**Weeks ${startWeek}-${startWeek + skillWeeks - 1}** | ${skill.estimated_hours || 20} hours | ${skill.difficulty_level || 'intermediate'}
+
+#### Foundation Phase
+- Set up development environment
+- Review prerequisites and documentation
+- Complete beginner tutorials
+
+#### Practice Phase  
+- Build practice projects
+- Complete coding challenges
+- Join community discussions
+
+#### Mastery Phase
+- Create portfolio project
+- Contribute to open source
+- Prepare for certifications
+`;
+}).join('\n')}
+
+## 🎯 Success Strategy
+- Dedicate consistent daily time (even 30 minutes helps!)
+- Build real projects, not just tutorials
+- Join communities for support and motivation
+- Track your progress weekly
+- Take breaks to avoid burnout
+
+## 📚 Resources
+- Official documentation
+- Interactive coding platforms
+- YouTube tutorials
+- Community forums
+- Open source projects
+`;
+
+  return {
+    plan,
+    totalHours,
+    estimatedWeeks: weeks,
+    skills,
+    isOffline: true
   };
+};
 
   const markComplete = (skillId) => {
     const updated = completedSkills.includes(skillId)
@@ -819,6 +1046,9 @@ function App() {
       handleBreadcrumbClick={handleBreadcrumbClick}
       onBackToLanding={() => setCurrentPage('landing')}
       cyRef={cyRef}
+      isMobile={isMobile}
+      isDetailMinimized={isDetailMinimized}
+      setIsDetailMinimized={setIsDetailMinimized}
     />
   );
 }

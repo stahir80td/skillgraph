@@ -31,16 +31,41 @@ const toNumber = (value) => {
   return value;
 };
 
-// Gemini API configuration
+// Gemini API configuration with rate limiting
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-pro-latest';
+
+// Simple in-memory cache for study plans
+const studyPlanCache = new Map();
+const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+
+// Rate limiting for Gemini API
+let lastGeminiCall = 0;
+const MIN_TIME_BETWEEN_CALLS = 3000; // 3 seconds minimum between calls
+let rateLimitRetryAfter = null; // Track when we can retry after 429
 
 async function callGemini(prompt) {
   if (!GEMINI_API_KEY) return null;
   
+  // Check if we're still in rate limit cooldown
+  if (rateLimitRetryAfter && Date.now() < rateLimitRetryAfter) {
+    const waitTime = Math.ceil((rateLimitRetryAfter - Date.now()) / 1000);
+    throw new Error(`RATE_LIMIT: Please wait ${waitTime} seconds before trying again`);
+  }
+  
+  // Apply our own rate limiting
+  const now = Date.now();
+  const timeSinceLastCall = now - lastGeminiCall;
+  
+  if (timeSinceLastCall < MIN_TIME_BETWEEN_CALLS) {
+    const waitTime = MIN_TIME_BETWEEN_CALLS - timeSinceLastCall;
+    await new Promise(resolve => setTimeout(resolve, waitTime));
+  }
+  
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
   
   try {
+    lastGeminiCall = Date.now();
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -51,16 +76,25 @@ async function callGemini(prompt) {
       })
     });
 
+    if (response.status === 429) {
+      // Set cooldown period (60 seconds)
+      rateLimitRetryAfter = Date.now() + 60000;
+      console.error('🔴 Gemini API rate limit hit (429). Implementing 60-second cooldown.');
+      throw new Error('RATE_LIMIT: Too many requests. Using fallback plan generator.');
+    }
+    
     if (!response.ok) throw new Error(`Gemini API error: ${response.status}`);
     
     const data = await response.json();
     if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+      // Clear rate limit if successful
+      rateLimitRetryAfter = null;
       return data.candidates[0].content.parts[0].text;
     }
     throw new Error('Invalid response from Gemini API');
   } catch (error) {
     console.error('Gemini API call failed:', error.message);
-    return null;
+    throw error; // Re-throw to handle in calling function
   }
 }
 
@@ -506,7 +540,7 @@ app.get('/api/node/:id', async (req, res) => {
   }
 });
 
-// Generate study plan
+// Generate study plan with better error handling and caching
 app.post('/api/study-plan', async (req, res) => {
   const { skills, hoursPerWeek = 10, learningStyle = 'mixed' } = req.body;
   
@@ -521,19 +555,47 @@ app.post('/api/study-plan', async (req, res) => {
     );
     const weeks = Math.ceil(totalHours / hoursPerWeek);
     
-    let studyPlan;
+    // Create cache key
+    const cacheKey = `${skillNames}_${hoursPerWeek}_${learningStyle}`;
     
-    if (GEMINI_API_KEY) {
-      const prompt = `Create a detailed ${weeks}-week study plan for learning: ${skillNames}. 
-        Total hours: ${totalHours}, ${hoursPerWeek} hours/week, ${learningStyle} style.
-        Include week-by-week breakdown with specific goals, resources, and milestones.
-        Format as structured markdown.`;
-
-      studyPlan = await callGemini(prompt);
+    // Check cache first
+    const cached = studyPlanCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      console.log('📦 Returning cached study plan');
+      return res.json({
+        ...cached.data,
+        fromCache: true
+      });
     }
     
+    let studyPlan;
+    let isAiGenerated = false;
+    let rateLimitMessage = null;
+    
+    // Try Gemini API if configured
+    if (GEMINI_API_KEY) {
+      try {
+        const prompt = `Create a detailed ${weeks}-week study plan for learning: ${skillNames}. 
+          Total hours: ${totalHours}, ${hoursPerWeek} hours/week, ${learningStyle} style.
+          Include week-by-week breakdown with specific goals, resources, and milestones.
+          Format as structured markdown.`;
+
+        studyPlan = await callGemini(prompt);
+        isAiGenerated = true;
+        
+      } catch (geminiError) {
+        if (geminiError.message.includes('RATE_LIMIT')) {
+          console.log('⚠️ Rate limit detected, using fallback plan');
+          rateLimitMessage = geminiError.message.replace('RATE_LIMIT: ', '');
+        } else {
+          console.error('🔴 Gemini API error:', geminiError.message);
+        }
+      }
+    }
+    
+    // Use fallback if Gemini fails or is not configured
     if (!studyPlan) {
-      // Detailed fallback plan
+      console.log('📝 Using fallback study plan generator');
       studyPlan = `# 📚 Personalized Study Plan
 
 ## Overview
@@ -542,6 +604,8 @@ app.post('/api/study-plan', async (req, res) => {
 **Weekly Commitment:** ${hoursPerWeek} hours
 **Total Hours:** ${totalHours}
 **Learning Style:** ${learningStyle}
+
+${rateLimitMessage ? `\n> ⚠️ **Note:** ${rateLimitMessage}. This is a high-quality template-based plan.\n` : ''}
 
 ## Weekly Schedule
 
@@ -606,15 +670,37 @@ ${skills.map((skill, index) => {
 `;
     }
 
-    res.json({
+    const responseData = {
       plan: studyPlan,
       totalHours,
       estimatedWeeks: weeks,
-      skills
-    });
+      skills,
+      isAiGenerated,
+      rateLimitMessage
+    };
+
+    // Cache the successful response
+    if (!rateLimitMessage) {
+      studyPlanCache.set(cacheKey, {
+        data: responseData,
+        timestamp: Date.now()
+      });
+    }
+
+    // Clear old cache entries if too many
+    if (studyPlanCache.size > 100) {
+      const oldestKey = studyPlanCache.keys().next().value;
+      studyPlanCache.delete(oldestKey);
+    }
+
+    res.json(responseData);
   } catch (error) {
     console.error('Error generating study plan:', error);
-    res.status(500).json({ error: 'Failed to generate study plan' });
+    res.status(500).json({ 
+      error: 'Failed to generate study plan', 
+      details: error.message,
+      fallbackAvailable: true 
+    });
   }
 });
 
@@ -747,6 +833,7 @@ app.get('/api/health', async (req, res) => {
     status: 'ok',
     neo4j: neo4jConnected,
     gemini: !!GEMINI_API_KEY,
+    geminiRateLimited: rateLimitRetryAfter ? new Date(rateLimitRetryAfter).toISOString() : null,
     timestamp: new Date().toISOString()
   });
 });

@@ -138,6 +138,13 @@ const StudyPlanViewer = ({ studyPlanData, onClose }) => {
           </div>
         </div>
 
+        {/* Add notice component if it exists */}
+        {studyPlanData.noticeComponent && (
+          <div style={{ padding: '0 2rem' }}>
+            {studyPlanData.noticeComponent}
+          </div>
+        )}
+
         {/* Skills Overview */}
         <div className="skills-overview">
           <h2>🎯 Skills You'll Master</h2>
