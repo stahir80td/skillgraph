@@ -1,0 +1,48 @@
+name: Keep Alive
+
+on:
+  schedule:
+    # Run every 13 minutes
+    # Cron format: minute hour day month day-of-week
+    # */13 means every 13 minutes
+    - cron: '*/13 * * * *'
+  
+  # Allow manual trigger from GitHub Actions tab
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Ping SkillGraph Application
+        run: |
+          # Replace with your actual Render URL
+          RENDER_URL="${{ secrets.RENDER_URL || 'https://skillgraph-5so4.onrender.com' }}"
+          
+          echo "Pinging $RENDER_URL/api/health"
+          
+          # Make the health check request
+          response=$(curl -s -o /dev/null -w "%{http_code}" "$RENDER_URL/api/health" || echo "000")
+          
+          if [ "$response" = "200" ]; then
+            echo "✅ Health check successful (HTTP $response)"
+          else
+            echo "⚠️ Health check returned HTTP $response"
+            # Don't fail the workflow for non-200 responses
+            # The app might be starting up
+          fi
+          
+      - name: Log Wake Time
+        run: |
+          echo "Wake-up ping sent at $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          
+      - name: Optional - Check Graph Endpoint
+        continue-on-error: true
+        run: |
+          RENDER_URL="${{ secrets.RENDER_URL || 'https://skillgraph-5so4.onrender.com' }}"
+          
+          # Also ping the main graph endpoint to ensure full initialization
+          curl -s -X GET "$RENDER_URL/api/graph/initial" \
+            -H "Content-Type: application/json" \
+            --max-time 30 || echo "Graph endpoint check completed"
