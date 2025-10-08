@@ -36,39 +36,13 @@ RUN npm ci --only=production
 # Copy backend server file
 COPY server/index.js ./server/index.js
 
-# Copy built frontend from previous stage
-COPY --from=frontend-builder /app/dist ./dist
+# Copy built frontend from previous stage to public folder
+COPY --from=frontend-builder /app/dist ./public
 
-# Create a production server that serves both API and static files
-RUN cat > start-server.js << 'EOF'
-const express = require('express');
-const path = require('path');
-const cors = require('cors');
-
-// Set up express app
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-// Import API routes from your server file
-require('./server/index.js');
-
-// Serve static files from Vite build
-app.use(express.static(path.join(__dirname, 'dist')));
-
-// Serve index.html for all non-API routes (client-side routing)
-app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api')) {
-    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-  }
-});
-
-// Start server on PORT env variable
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`SkillGraph server running on port ${PORT}`);
-});
-EOF
+# Modify the server/index.js to serve static files in production
+# We'll do this by setting an environment variable that the server can check
+ENV NODE_ENV=production
+ENV STATIC_PATH=/app/public
 
 # Expose port
 EXPOSE 3001
@@ -76,5 +50,5 @@ EXPOSE 3001
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
-# Run the backend server directly (it already serves the frontend in production)
+# Run the backend server
 CMD ["node", "server/index.js"]
