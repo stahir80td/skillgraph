@@ -9,7 +9,7 @@ import './App.css';
 // Register the dagre layout
 Cytoscape.use(dagre);
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 // ====================================
 // BREADCRUMB COMPONENT (OUTSIDE APP)
